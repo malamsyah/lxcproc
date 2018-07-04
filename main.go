@@ -18,7 +18,7 @@ func getLXCInfo(name string) {
 	fmt.Printf("combined out:\n%s\n", string(out))
 }
 
-func getLXCList() ([]LXCInfoJson, error) {
+func getLXCList() ([]LXCInfoJSON, error) {
 	cmd := exec.Command("lxc", "list", "--format", "json")
 	out, err := cmd.CombinedOutput()
 	if err != nil {
@@ -51,9 +51,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	w.Write(dataJSON)
 }
 
-func parseFile(raw string) ([]LXCInfoJson, error) {
+func parseFile(raw string) ([]LXCInfoJSON, error) {
 	test_input := []byte(raw)
-	var result []LXCInfoJson
+	var result []LXCInfoJSON
 	err := json.Unmarshal(test_input, &result)
 	if err != nil {
 		return nil, err
@@ -69,14 +69,36 @@ func main() {
 	}
 }
 
-type LXCInfoJson struct {
-	Architecture string    `json:"architecture"`
-	Ephemeral    bool      `json:"ephemeral"`
-	Stateful     bool      `json:"stateful"`
-	Description  string    `json:"description"`
-	CreatedAt    time.Time `json:"created_at"`
-	Name         string    `json:"name"`
-	Status       string    `json:"status"`
-	StatusCode   int       `json:"status_code"`
-	LastUsedAt   time.Time `json:"last_used_at"`
+type LXCInfoJSON struct {
+	Architecture string       `json:"architecture"`
+	Ephemeral    bool         `json:"ephemeral"`
+	Stateful     bool         `json:"stateful"`
+	Description  string       `json:"description"`
+	CreatedAt    time.Time    `json:"created_at"`
+	Name         string       `json:"name"`
+	Status       string       `json:"status"`
+	StatusCode   int          `json:"status_code"`
+	LastUsedAt   time.Time    `json:"last_used_at"`
+	State        LXCStateJSON `json:"state"`
+}
+
+type LXCStateJSON struct {
+	Status     string `json:"status"`
+	StatusCode int    `json:"status_code"`
+	Disk       struct {
+		Root struct {
+			Usage int `json:"usage"`
+		} `json:"root"`
+	} `json:"disk"`
+	Memory struct {
+		Usage         int `json:"usage"`
+		UsagePeak     int `json:"usage_peak"`
+		SwapUsage     int `json:"swap_usage"`
+		SwapUsagePeak int `json:"swap_usage_peak"`
+	} `json:"memory"`
+	PID       int `json:"pid"`
+	Processes int `json:"processes"`
+	CPU       struct {
+		Usage int `json:"usage"`
+	} `json:"cpu"`
 }
