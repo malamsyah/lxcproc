@@ -61,9 +61,39 @@ func getContainersHandler(w http.ResponseWriter, r *http.Request) {
 	returnJSON(w, containers)
 }
 
+func getContainerStateHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		returnJSON(w, `{"message":"request not found"}`)
+		return
+	}
+
+	names, ok := r.URL.Query()["name"]
+
+	if !ok || len(names[0]) < 1 {
+		returnJSON(w, `{"message":"url param 'name' is missing"}`)
+		return
+	}
+
+	name := names[0]
+
+	c, err := lxd.ConnectLXDUnix("", nil)
+	if err != nil {
+		panic(err)
+	}
+
+	container, _, err := c.GetContainerState(name)
+	if err != nil {
+		returnJSON(w, `{"message":"`+err.Error()+`"}`)
+		return
+	}
+
+	returnJSON(w, container)
+}
+
 func main() {
 	http.HandleFunc("/lxd/resource", getResourceHandler)
 	http.HandleFunc("/lxd/containers", getContainersHandler)
+	http.HandleFunc("/lxd/state", getContainerStateHandler)
 	err := http.ListenAndServe(":4041", nil)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
