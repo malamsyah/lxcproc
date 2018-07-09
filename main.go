@@ -44,7 +44,7 @@ func getResourceHandler(w http.ResponseWriter, r *http.Request) {
 
 func getContainersHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
-		returnJSON(w, `{"message":"request not found"}`)
+		returnJSON(w, map[string]string{"message": "request not found"}, http.StatusBadRequest)
 		return
 	}
 
@@ -58,19 +58,19 @@ func getContainersHandler(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	returnJSON(w, containers)
+	returnJSON(w, containers, http.StatusOK)
 }
 
 func getContainerStateHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
-		returnJSON(w, `{"message":"request not found"}`)
+		returnJSON(w, map[string]string{"message": "request not found"}, http.StatusBadRequest)
 		return
 	}
 
 	names, ok := r.URL.Query()["name"]
 
 	if !ok || len(names[0]) < 1 {
-		returnJSON(w, `{"message":"url param 'name' is missing"}`)
+		returnJSON(w, map[string]string{"message": "url param 'name' is missing"}, http.StatusBadRequest)
 		return
 	}
 
@@ -83,11 +83,11 @@ func getContainerStateHandler(w http.ResponseWriter, r *http.Request) {
 
 	container, _, err := c.GetContainerState(name)
 	if err != nil {
-		returnJSON(w, `{"message":"`+err.Error()+`"}`)
+		returnJSON(w, map[string]string{"message": err.Error()}, http.StatusBadRequest)
 		return
 	}
 
-	returnJSON(w, container)
+	returnJSON(w, container, http.StatusOK)
 }
 
 func main() {
@@ -100,13 +100,13 @@ func main() {
 	}
 }
 
-func returnJSON(w http.ResponseWriter, data interface{}) {
+func returnJSON(w http.ResponseWriter, data interface{}, status int) {
 	response, err := json.Marshal(data)
 	if err != nil {
 		panic(err)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(status)
 	w.Write(response)
 }
