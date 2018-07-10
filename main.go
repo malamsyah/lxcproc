@@ -10,14 +10,7 @@ import (
 
 func getResourceHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "GET" {
-		response, err := json.Marshal(`{"message":"request not found"}`)
-		if err != nil {
-			panic(err)
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		w.Write(response)
+		returnJSON(w, map[string]string{"message": "request not found"}, http.StatusBadRequest)
 		return
 	}
 
@@ -31,15 +24,7 @@ func getResourceHandler(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	response, err := json.Marshal(resource)
-	if err != nil {
-		panic(err)
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(response)
-
+	returnJSON(w, resource, http.StatusOK)
 }
 
 func getContainersHandler(w http.ResponseWriter, r *http.Request) {
