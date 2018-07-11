@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -75,7 +76,28 @@ func getContainerStateHandler(w http.ResponseWriter, r *http.Request) {
 	returnJSON(w, container, http.StatusOK)
 }
 
+func getMetricsHandler(w http.ResponseWriter, r *http.Request) {
+
+	c, err := lxd.ConnectLXDUnix("", nil)
+	if err != nil {
+		panic(err)
+	}
+
+	resource, err := c.GetServerResources()
+	if err != nil {
+		panic(err)
+	}
+
+	var data string
+
+	data += "lxd_resource_memory_total " + fmt.Sprint(resource.Memory.Total) + "\n"
+	data += "lxd_resource_memory_used " + fmt.Sprint(resource.Memory.Used) + "\n"
+
+	returnText(w, data, http.StatusOK)
+}
+
 func main() {
+	http.HandleFunc("/metrics", getMetricsHandler)
 	http.HandleFunc("/lxd/resource", getResourceHandler)
 	http.HandleFunc("/lxd/containers", getContainersHandler)
 	http.HandleFunc("/lxd/state", getContainerStateHandler)
@@ -94,4 +116,10 @@ func returnJSON(w http.ResponseWriter, data interface{}, status int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	w.Write(response)
+}
+
+func returnText(w http.ResponseWriter, data string, status int) {
+	w.Header().Set("Content-Type", "text/plain")
+	w.WriteHeader(status)
+	w.Write([]byte(data))
 }
