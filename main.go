@@ -77,6 +77,10 @@ func getContainerStateHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func getMetricsHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != "GET" {
+		returnJSON(w, map[string]string{"message": "request not found"}, http.StatusBadRequest)
+		return
+	}
 
 	c, err := lxd.ConnectLXDUnix("", nil)
 	if err != nil {
@@ -90,8 +94,8 @@ func getMetricsHandler(w http.ResponseWriter, r *http.Request) {
 
 	var data string
 
-	data += "lxd_resource_memory_total " + fmt.Sprint(resource.Memory.Total) + "\n"
-	data += "lxd_resource_memory_used " + fmt.Sprint(resource.Memory.Used) + "\n"
+	data += "lxd_resource_memory_bytes_total " + fmt.Sprint(resource.Memory.Total) + "\n"
+	data += "lxd_resource_memory_bytes_used " + fmt.Sprint(resource.Memory.Used) + "\n"
 
 	returnText(w, data, http.StatusOK)
 }
